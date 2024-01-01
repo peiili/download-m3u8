@@ -89,10 +89,12 @@ function getVideoBuffer(dirPath, contentArr, i) {
         data = Buffer.concat([data, chunk]);
       });
       res.on("end", function () {
-        
         fs.writeFile(path.join(dirPath,pathObj.base), data,()=>{});
         getVideoBuffer(dirPath, contentArr, j)
       });
+
+    }).on('error', function(err){
+      console.error(err);
     });
   } else {
     console.log('download done');
