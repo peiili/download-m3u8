@@ -8,7 +8,7 @@ var url = require("url");
 var getTsMap = function (res, mapUrl, videoname) {
   var myurl = url.parse(mapUrl);
   var hostdir = path.parse(myurl.pathname).dir // /20230919/21729_c23ad792/2000k/hls/mixed.m3u8
-  console.log(hostdir);
+  console.log('11:',hostdir);
   var hostName = `${myurl.protocol}//${myurl.hostname}`
 
   var dirPath = path.join(__dirname,'media',videoname)
@@ -21,16 +21,25 @@ var getTsMap = function (res, mapUrl, videoname) {
   } else {
     protocol = http
   }
+  console.log(mapUrl);
+  console.log(protocol);
+  
   protocol.get(mapUrl, function (result) {
-    var tsFile = path.join(dirPath,'index.m3u8')
-    fs.writeFileSync(tsFile,'')
+
     var data = Buffer.alloc(0);
     result.on("data", function (chunk) {
       data = Buffer.concat([data, chunk]);
     });
     result.on("end", function () {
       var content = data.toString();
-
+      var tsFile = path.join(dirPath,'index.m3u8')
+      if(fs.existsSync(tsFile)){
+        content = fs.readFileSync(tsFile, 'utf-8')
+      } else {
+        fs.writeFileSync(tsFile,'')
+      }
+      console.log(content);
+      
       if (content.indexOf('html') > -1) {
         res.end('error')
         return

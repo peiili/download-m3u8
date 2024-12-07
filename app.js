@@ -11,7 +11,7 @@ var app = http.createServer((req, res)=>{
   var search = req.url.split('?')[1]
   var searchObj = querystring.parse(search)
   req.query = searchObj
-  console.log('14',/\/libs\/*/.test(queryPath));
+  
   if(queryPath === '/'){
     var template = fs.readFileSync('./index.html','utf-8')
     var list = fs.readdirSync('./media')
@@ -48,7 +48,13 @@ var app = http.createServer((req, res)=>{
   } else if(queryPath === '/getvideo') {
     getVideo(req,res)
   }else if(/\/media\/*/.test(queryPath)) {
+    
+    console.log(fs.existsSync(path.join(__dirname,queryPath)));
+    console.log(path.join(__dirname,queryPath));
+    
+    
     if(fs.existsSync(path.join(__dirname,queryPath))){
+
       var file = fs.readFileSync(path.join(__dirname,queryPath))
       res.end(file)
     }else{
