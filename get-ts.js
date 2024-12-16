@@ -4,7 +4,8 @@ var fs = require("fs");
 var path = require("path");
 var url = require("url");
 
-
+let total = 0
+let progress = 0
 var getTsMap = function (res, mapUrl, videoname) {
   var myurl = url.parse(mapUrl);
   var hostdir = path.parse(myurl.pathname).dir // /20230919/21729_c23ad792/2000k/hls/mixed.m3u8
@@ -25,7 +26,11 @@ var getTsMap = function (res, mapUrl, videoname) {
   console.log(protocol);
   
   protocol.get(mapUrl, function (result) {
-
+    if (res.statusCode !== 200) {
+      console.log('[err]', mapUrl);
+      
+      return
+    }
     var data = Buffer.alloc(0);
     result.on("data", function (chunk) {
       data = Buffer.concat([data, chunk]);
@@ -67,7 +72,7 @@ var getTsMap = function (res, mapUrl, videoname) {
         }
        
         res.end('downloading……')
-
+        total = bufferArr.length
         getVideoBuffer(dirPath,bufferArr,0)
       } else {
         res.end('error')
@@ -93,6 +98,14 @@ function getVideoBuffer(dirPath, contentArr, i) {
       protocol = http
     }
     protocol.get(ele, function (res) {
+        
+      if(res.statusCode===404 ) {
+        console.error('404' ,ele);
+        
+          getVideoBuffer(dirPath, contentArr, j)
+          return
+      }
+
       var data = Buffer.alloc(0);
       res.on("data", function (chunk) {
         data = Buffer.concat([data, chunk]);
