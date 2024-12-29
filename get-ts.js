@@ -100,7 +100,7 @@ function getVideoBuffer(dirPath, contentArr, i) {
     protocol.get(ele, function (res) {
         
       if(res.statusCode===404 ) {
-        console.error('404' ,ele);
+        console.error('%c 404','background: yellow; color: red' ,ele);
         
           getVideoBuffer(dirPath, contentArr, j)
           return
