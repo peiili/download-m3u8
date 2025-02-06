@@ -25,7 +25,7 @@ var getTsMap = function (res, mapUrl, videoname) {
   console.log(mapUrl);
   console.log(protocol);
   
-  protocol.get(mapUrl, function (result) {
+  const request = protocol.get(mapUrl, function (result) {
     if (res.statusCode !== 200) {
       console.log('[err]', mapUrl);
       
@@ -79,6 +79,10 @@ var getTsMap = function (res, mapUrl, videoname) {
       }
     });
   });
+  request.on('error', function(err){
+    console.error(err);
+    
+  })
 };
 
 function getVideoBuffer(dirPath, contentArr, i) {
@@ -111,7 +115,7 @@ function getVideoBuffer(dirPath, contentArr, i) {
         data = Buffer.concat([data, chunk]);
       });
       res.on("end", function () {
-        fs.writeFile(path.join(dirPath,pathObj.base), data,()=>{});
+        fs.writeFile(path.join(dirPath,pathObj.base.split('?')[0]), data,()=>{});
         getVideoBuffer(dirPath, contentArr, j)
       });
 
