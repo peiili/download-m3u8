@@ -5,13 +5,14 @@ var fs = require('fs')
 
 var getVideo = require('./getVideo')
 var getTs = require('./get-ts');
+var download = require('./views/download')
 
 var app = http.createServer((req, res)=>{
   var queryPath = req.url.split('?')[0]
   var search = req.url.split('?')[1]
   var searchObj = querystring.parse(search)
   req.query = searchObj
-  
+  console.log(req.url)
   if(queryPath === '/'){
     var template = fs.readFileSync('./index.html','utf-8')
     var list = fs.readdirSync('./media')
@@ -62,7 +63,9 @@ var app = http.createServer((req, res)=>{
     }
   }else if(queryPath === '/get-ts') {
     getTs(req,res)
-  } else{
+  } else if(queryPath === '/views/download'){
+    download(req, res)
+  }  else{
     res.end('')
   }
 })
