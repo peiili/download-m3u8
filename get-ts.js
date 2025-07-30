@@ -6,7 +6,7 @@ var url = require("url");
 
 let total = 0
 let progress = 0
-var getTsMap = function (res, mapUrl, videoname) {
+var getTsMap = function (res, mapUrl, prefix, videoname) {
   var myurl = url.parse(mapUrl);
   var hostdir = path.parse(myurl.pathname).dir // /20230919/21729_c23ad792/2000k/hls/mixed.m3u8
   console.log('11:',hostdir);
@@ -57,12 +57,15 @@ process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
         for (var i = 0; i < contentArr.length; i++) {
           var ele = contentArr[i];
           console.log(ele);
-          if (ele.indexOf(".ts") > -1 || ele.indexOf(".jpg") > -1) {
-            if (ele.indexOf("http") > -1) {
+          if (ele.indexOf(".ts") > -1 || ele.indexOf(".jpg") > -1 ||ele.indexOf(".jpeg") > -1) {
+            if (ele.indexOf("http") > -1) { // 如果已经有了域名
               bufferArr.push(ele)
             } else { // 本地已经下载，或者源数据没有拼接host
-              // ele = path.join(hostName,hostdir, '/', ele)
-              ele = path.join(hostName, '/', ele)
+              if(ele.indexOf('/')=== -1){ // 路径上没有/
+                ele = path.join(hostName,hostdir, '/', ele)
+              } else {
+                ele = path.join(hostName, '/', ele)
+              }
               bufferArr.push(ele)
             }
             console.log(ele);
@@ -134,5 +137,8 @@ function getVideoBuffer(dirPath, contentArr, i) {
 module.exports = function (req, res) {
   var url = decodeURIComponent(req.query.url)
   var videoName = encodeURIComponent(req.query.name)  
-  getTsMap(res, url, videoName);
+  var prefix = encodeURIComponent(req.query.prefix)  // 下载文件时的前缀
+
+// https://yzzy.play-cdn13.com/20230329/21353_5a44c0f9/2000k/hls/
+  getTsMap(res, url, prefix, videoName);
 }
