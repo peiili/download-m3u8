@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>媒体库管理</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            animation: fadeInDown 0.6s ease-out;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            color: white;
+            text-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
+            font-weight: 700;
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 25px;
+            background: rgba(255, 255, 255, 0.95);
+            color: #667eea;
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: 600;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: none;
+            font-size: 1em;
+        }
+
+        .back-btn:hover {
+            background: white;
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .back-btn::before {
+            content: '←';
+            font-size: 1.2em;
+        }
+
+        .search-box {
+            margin-bottom: 30px;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 15px 50px 15px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 50px;
+            background: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        .search-input:focus {
+            background: white;
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .search-wrapper {
+            position: relative;
+        }
+
+        .search-icon {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 20px;
+            color: #667eea;
+            pointer-events: none;
+        }
+
+        .media-list {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            animation: fadeInUp 1s ease-out;
+        }
+
+        .media-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            border-bottom: 1px solid #e0e0e0;
+            transition: all 0.3s ease;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .media-item:last-child {
+            border-bottom: none;
+        }
+
+        .media-item:hover {
+            background: #f8f9fa;
+        }
+
+        .media-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .media-name {
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #2c3e50;
+            word-break: break-all;
+        }
+
+        .media-path {
+            font-size: 0.85em;
+            color: #7f8c8d;
+            word-break: break-all;
+        }
+
+        .media-actions {
+            display: flex;
+            gap: 10px;
+            margin-left: 15px;
+            flex-shrink: 0;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        .btn-rename {
+            background: #3498db;
+            color: white;
+        }
+
+        .btn-rename:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+        }
+
+        .btn-delete {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .btn-delete:hover {
+            background: #c0392b;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(231, 76, 60, 0.3);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #7f8c8d;
+        }
+
+        .empty-state-icon {
+            font-size: 3em;
+            margin-bottom: 15px;
+        }
+
+        .empty-state h2 {
+            font-size: 1.5em;
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+
+        .empty-state p {
+            font-size: 1em;
+            color: #7f8c8d;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .modal-title {
+            font-size: 1.5em;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+
+        .modal-input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            margin-bottom: 20px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .modal-input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .modal-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1em;
+        }
+
+        .modal-btn-cancel {
+            background: #e0e0e0;
+            color: #2c3e50;
+        }
+
+        .modal-btn-cancel:hover {
+            background: #d0d0d0;
+        }
+
+        .modal-btn-confirm {
+            background: #667eea;
+            color: white;
+        }
+
+        .modal-btn-confirm:hover {
+            background: #5568d3;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            background: #2c3e50;
+            color: white;
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            z-index: 2000;
+            animation: slideInUp 0.3s ease-out;
+            max-width: 400px;
+        }
+
+        .toast.success {
+            background: #27ae60;
+        }
+
+        .toast.error {
+            background: #e74c3c;
+        }
+
+        .toast.info {
+            background: #3498db;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                gap: 15px;
+                align-items: flex-start;
+            }
+
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .media-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+
+            .media-actions {
+                width: 100%;
+                margin-left: 0;
+            }
+
+            .media-actions .btn {
+                flex: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📁 媒体库管理</h1>
+            <a href="/" class="back-btn">返回首页</a>
+        </div>
+
+        <div class="search-box">
+            <div class="search-wrapper">
+                <input
+                    type="text"
+                    class="search-input"
+                    id="searchInput"
+                    placeholder="搜索媒体..."
+                    autocomplete="off"
+                >
+                <span class="search-icon">🔍</span>
+            </div>
+        </div>
+
+        <div class="media-list" id="mediaList">
+            {{mediaItems}}
+        </div>
+    </div>
+
+    <!-- 重命名模态框 -->
+    <div class="modal" id="renameModal">
+        <div class="modal-content">
+            <div class="modal-title">重命名媒体</div>
+            <input
+                type="text"
+                class="modal-input"
+                id="renameInput"
+                placeholder="输入新的媒体名称"
+            >
+            <div class="modal-buttons">
+                <button class="modal-btn modal-btn-cancel" onclick="closeRenameModal()">取消</button>
+                <button class="modal-btn modal-btn-confirm" id="confirmRenameBtn" onclick="confirmRename()">确认</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 删除确认模态框 -->
+    <div class="modal" id="deleteModal">
+        <div class="modal-content">
+            <div class="modal-title">删除媒体</div>
+            <p style="color: #7f8c8d; margin-bottom: 20px;">
+                确定要删除 <strong id="deleteMediaName"></strong> 吗？<br>
+                <span style="color: #e74c3c;">此操作无法撤销</span>
+            </p>
+            <div class="modal-buttons">
+                <button class="modal-btn modal-btn-cancel" onclick="closeDeleteModal()">取消</button>
+                <button class="modal-btn modal-btn-confirm" id="confirmDeleteBtn" style="background: #e74c3c;" onclick="confirmDelete()">删除</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let mediaList = {{mediaList}};
+        let mediaListRaw = {{mediaListRaw}};
+        let currentRenameItem = null;
+        let currentRenameItemRaw = null;
+        let currentDeleteItem = null;
+        let currentDeleteItemRaw = null;
+        let filteredList = [...mediaList];
+        let filteredListRaw = [...mediaListRaw];
+
+        // 初始化页面
+        function initPage() {
+            renderMediaList();
+            setupSearch();
+        }
+
+        // 渲染媒体列表
+        function renderMediaList() {
+            const list = document.getElementById('mediaList');
+            if (filteredList.length === 0) {
+                list.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📭</div>
+                        <h2>暂无媒体</h2>
+                        <p>媒体库中还没有任何视频</p>
+                    </div>
+                `;
+                return;
+            }
+
+            list.innerHTML = filteredList.map((item, index) => `
+                <div class="media-item">
+                    <div class="media-info">
+                        <div class="media-name">🎬 ${escapeHtml(item)}</div>
+                        <div class="media-path">路径: /media/${encodeURIComponent(filteredListRaw[index])}</div>
+                    </div>
+                    <div class="media-actions">
+                        <button class="btn btn-rename" onclick="openRenameModal('${escapeHtml(item).replace(/'/g, "\\'")}', '${escapeHtml(filteredListRaw[index]).replace(/'/g, "\\'")}')">
+                            ✏️ 重命名
+                        </button>
+                        <button class="btn btn-delete" onclick="openDeleteModal('${escapeHtml(item).replace(/'/g, "\\'")}', '${escapeHtml(filteredListRaw[index]).replace(/'/g, "\\'")}')">
+                            🗑️ 删除
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // 搜索功能
+        function setupSearch() {
+            const searchInput = document.getElementById('searchInput');
+            searchInput.addEventListener('input', (e) => {
+                const searchTerm = e.target.value.toLowerCase().trim();
+                filteredList = [];
+                filteredListRaw = [];
+                mediaList.forEach((item, index) => {
+                    if (item.toLowerCase().includes(searchTerm)) {
+                        filteredList.push(item);
+                        filteredListRaw.push(mediaListRaw[index]);
+                    }
+                });
+                renderMediaList();
+            });
+        }
+
+        // 打开重命名模态框
+        function openRenameModal(name, nameRaw) {
+            currentRenameItem = name;
+            currentRenameItemRaw = nameRaw;
+            document.getElementById('renameInput').value = name;
+            document.getElementById('renameModal').classList.add('show');
+            document.getElementById('renameInput').focus();
+        }
+
+        // 关闭重命名模态框
+        function closeRenameModal() {
+            document.getElementById('renameModal').classList.remove('show');
+            currentRenameItem = null;
+            currentRenameItemRaw = null;
+        }
+
+        // 确认重命名
+        async function confirmRename() {
+            const newName = document.getElementById('renameInput').value.trim();
+            if (!newName) {
+                showToast('请输入新的媒体名称', 'error');
+                return;
+            }
+
+            if (newName === currentRenameItem) {
+                showToast('新名称与原名称相同', 'info');
+                closeRenameModal();
+                return;
+            }
+
+            const btn = document.getElementById('confirmRenameBtn');
+            const oldText = btn.textContent;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading"></span>';
+
+            try {
+                const response = await fetch('/api/rename-media', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        oldName: currentRenameItemRaw,
+                        newName: newName
+                    })
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    const index = mediaList.indexOf(currentRenameItem);
+                    if (index > -1) {
+                        mediaList[index] = newName;
+                        mediaListRaw[index] = newName;
+                        filteredList = mediaList.filter((item, i) =>
+                            item.toLowerCase().includes(document.getElementById('searchInput').value.toLowerCase())
+                        );
+                        filteredListRaw = [];
+                        mediaList.forEach((item, index) => {
+                            if (item.toLowerCase().includes(document.getElementById('searchInput').value.toLowerCase())) {
+                                filteredListRaw.push(mediaListRaw[index]);
+                            }
+                        });
+                        renderMediaList();
+                    }
+                    showToast('重命名成功', 'success');
+                    closeRenameModal();
+                } else {
+                    showToast(result.error || '重命名失败', 'error');
+                }
+            } catch (error) {
+                showToast('重命名失败: ' + error.message, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = oldText;
+            }
+        }
+
+        // 打开删除确认模态框
+        function openDeleteModal(name, nameRaw) {
+            currentDeleteItem = name;
+            currentDeleteItemRaw = nameRaw;
+            document.getElementById('deleteMediaName').textContent = name;
+            document.getElementById('deleteModal').classList.add('show');
+        }
+
+        // 关闭删除模态框
+        function closeDeleteModal() {
+            document.getElementById('deleteModal').classList.remove('show');
+            currentDeleteItem = null;
+            currentDeleteItemRaw = null;
+        }
+
+        // 确认删除
+        async function confirmDelete() {
+            const btn = document.getElementById('confirmDeleteBtn');
+            const oldText = btn.textContent;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading"></span>';
+
+            try {
+                const response = await fetch('/api/delete-media', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: currentDeleteItemRaw })
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    const index = mediaList.indexOf(currentDeleteItem);
+                    if (index > -1) {
+                        mediaList.splice(index, 1);
+                        mediaListRaw.splice(index, 1);
+                        filteredList = mediaList.filter((item, i) =>
+                            item.toLowerCase().includes(document.getElementById('searchInput').value.toLowerCase())
+                        );
+                        filteredListRaw = [];
+                        mediaList.forEach((item, index) => {
+                            if (item.toLowerCase().includes(document.getElementById('searchInput').value.toLowerCase())) {
+                                filteredListRaw.push(mediaListRaw[index]);
+                            }
+                        });
+                        renderMediaList();
+                    }
+                    showToast('删除成功', 'success');
+                    closeDeleteModal();
+                } else {
+                    showToast(result.error || '删除失败', 'error');
+                }
+            } catch (error) {
+                showToast('删除失败: ' + error.message, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = oldText;
+            }
+        }
+
+        // 显示提示信息
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(20px)';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // HTML 转义
+        function escapeHtml(text) {
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return text.replace(/[&<>"']/g, m => map[m]);
+        }
+
+        // 键盘事件
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeRenameModal();
+                closeDeleteModal();
+            }
+        });
+
+        document.getElementById('renameInput').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                confirmRename();
+            }
+        });
+
+        // 初始化
+        initPage();
+    </script>
+</body>
+</html>

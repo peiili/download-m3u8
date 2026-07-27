@@ -53,7 +53,9 @@ var getTsMap = function (res, mapUrl, prefix, videoname) {
   }
   console.log(mapUrl);
   console.log(protocol);
-
+  
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'; 
+// 然后继续你的代码
   const request = protocol.get(getRequestOptions(mapUrl), function (result) {
     if (result.statusCode !== 200) {
       console.log('[err]', mapUrl);
