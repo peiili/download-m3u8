@@ -132,3 +132,6 @@ dist
 
 # custom
 media/
+.claude/settings.json
+.vscode/launch.json
+media

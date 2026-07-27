@@ -5,22 +5,22 @@ const { exec } = require("child_process");
 let hostName = "";
 let filename = "";
 let mapUrl = ''
-const getTsMap = function (res,req,i) {
+const getTsMap = function (req,res,i) {
   let pathStr = mapUrl.split("/");
   filename = pathStr.pop();
 
   hostName = pathStr.join("/");
-  http.get(mapUrl, function (res) {
+  http.get(mapUrl, function (message) {
     let data = Buffer.alloc(0);
-    res.on("data", function (chunk) {
+    message.on("data", function (chunk) {
       data = Buffer.concat([data, chunk]);
     });
-    res.on("end", function () {
+    message.on("end", function () {
       const content = data.toString();
       console.log(content);
 
       if(content.indexOf('html')>-1){
-        req.end('error')
+        res.end('error')
         return
       }
       const contentArr = content.split("\n");
@@ -29,16 +29,16 @@ const getTsMap = function (res,req,i) {
       if(contentArr.length>0){
         for (let i = 0; i < contentArr.length; i++) {
           const ele = contentArr[i];
-          if (ele.indexOf(".ts") > -1) {
+          if (ele.indexOf(".ts") > -1||ele.indexOf(".jpg")>-1) {
               bufferArr.push(ele)
             } else {
             }
         }
         fs.writeFileSync('./media-ts/'+filename+".ts", '');
-        req.end('downloading……')
+        res.end('downloading……')
         getVideoBuffer(bufferArr,i)
       } else {
-        req.end('error')
+        res.end('error')
       }
     });
   });
@@ -74,10 +74,10 @@ function getVideoBuffer(contentArr,i) {
     }
 }
 
-module.exports = function(res,req){
+module.exports = function(req,res){
   var i = 0
-  mapUrl = decodeURIComponent(res.query.url)
-  getTsMap(res,req,i);
+  mapUrl = decodeURIComponent(req.query.url)
+  getTsMap(req,res,i);
 }
 
 
